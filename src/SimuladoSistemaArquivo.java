@@ -94,7 +94,7 @@ public class SimuladoSistemaArquivo implements Serializable {
     private void recuperarDoDiario(){
         if(!diario.getDiarios().isEmpty()){
             System.out.println("Iniciando recuperação do diário...");
-            escreverLogLegivel("--- INICIANDO RECUPERAÇÃO DO DIÁRIO ---");
+            escreverLogLegivel("--- INICIANDO RECUPERAÇÃO DO DIARIO ---");
             for (EntradaNoDiario entradaDiario : diario.getDiarios()) { // Renomeado 'diario' para 'entradaDiario' para evitar conflito
                 System.out.println("Recuperando: " + entradaDiario);
                 escreverLogLegivel("[RECUPERANDO] " + entradaDiario.toString());
@@ -178,10 +178,10 @@ public class SimuladoSistemaArquivo implements Serializable {
             diario.limpar();
             salvarEstado();
             System.out.println("Recuperação do diário concluída.");
-            escreverLogLegivel("--- RECUPERAÇÃO DO DIÁRIO CONCLUÍDA. Diário limpo. ---");
+            escreverLogLegivel("--- RECUPERACAO DO DIARIO CONCLUIDA. Diario limpo. ---");
         }else{
             System.out.println("Diário vazio. Nenhuma recuperação necessária.");
-            escreverLogLegivel("Diário vazio na inicialização. Nenhuma recuperação necessária.");
+            escreverLogLegivel("Diario vazio na inicializacao. Nenhuma recuperacao necessaria.");
         }
     }
 
@@ -256,12 +256,24 @@ public class SimuladoSistemaArquivo implements Serializable {
         salvarEstado();
         escreverLogLegivel("[INICIADO] " + novaEntrada.toString());
 
+        // Adicionado para simular um atraso e permitir o teste de falha do journaling
+        try {
+            System.out.println("Simulando processamento... (Aperte Ctrl+C AGORA para testar o journaling)");
+            Thread.sleep(5000); // Atraso de 5 segundos (5000 milissegundos)
+        } catch (InterruptedException e) {
+            System.out.println("Operação interrompida. Verifique o diário na próxima inicialização.");
+            // Opcional: Você pode querer salvar o estado atual aqui para garantir que o diário seja persistido
+            // salvarEstado(); 
+            Thread.currentThread().interrupt(); // Restaura o status de interrupção
+        }
+
+
         pastaAtual.addArquivo(new Arquivo(nome, conteudo));
         System.out.println("Arquivo '"+nome+"' criado com sucesso.");
 
         diario.limpar();
         salvarEstado();
-        escreverLogLegivel("[CONCLUÍDO] Operação 'CRIAR_ARQUIVO' para '"+nome+"' concluída. Diário limpo.");
+        escreverLogLegivel("[CONCLUIDO] Operacao 'CRIAR_ARQUIVO' para '"+nome+"' concluida. Diario limpo.");
     }
 
     public void deletarArquivo(String nome){
@@ -280,7 +292,7 @@ public class SimuladoSistemaArquivo implements Serializable {
 
         diario.limpar();
         salvarEstado();
-        escreverLogLegivel("[CONCLUÍDO] Operação 'DELETAR_ARQUIVO' para '"+nome+"' concluída. Diário limpo.");
+        escreverLogLegivel("[CONCLUIDO] Operação 'DELETAR_ARQUIVO' para '"+nome+"' concluida. Diario limpo.");
     }
 
     public void renomearArquivo(String nomeVelho,String nomeNovo){
@@ -302,7 +314,7 @@ public class SimuladoSistemaArquivo implements Serializable {
         System.out.println("Arquivo '"+nomeVelho+"' renomeado para '"+nomeNovo+"'.");
         diario.limpar();
         salvarEstado();
-        escreverLogLegivel("[CONCLUÍDO] Operação 'RENOMEAR_ARQUIVO' para '"+nomeVelho+"' -> '"+nomeNovo+"' concluída. Diário limpo.");
+        escreverLogLegivel("[CONCLUIDO] Operacao 'RENOMEAR_ARQUIVO' para '"+nomeVelho+"' -> '"+nomeNovo+"' concluida. Diario limpo.");
     }
 
     public void copiarArquivo(String arquivoFonteCaminho, String pastaDestino){
@@ -351,7 +363,7 @@ public class SimuladoSistemaArquivo implements Serializable {
 
         diario.limpar();
         salvarEstado();
-        escreverLogLegivel("[CONCLUÍDO] Operação 'COPIAR_ARQUIVO' para '"+arquivoParaCopiar.getNome()+"' concluída. Diário limpo.");
+        escreverLogLegivel("[CONCLUIDO] Operacao 'COPIAR_ARQUIVO' para '"+arquivoParaCopiar.getNome()+"' concluida. Diario limpo.");
     }
 
     private String getPathAtual(Pasta pas){
@@ -387,7 +399,7 @@ public class SimuladoSistemaArquivo implements Serializable {
 
         diario.limpar();
         salvarEstado();
-        escreverLogLegivel("[CONCLUÍDO] Operação 'CRIAR_PASTA' para '"+nome+"' concluída. Diário limpo.");
+        escreverLogLegivel("[CONCLUIDO] Operacao 'CRIAR_PASTA' para '"+nome+"' concluida. Diario limpo.");
     }
 
     public void deletarPasta(String nome){
@@ -411,7 +423,7 @@ public class SimuladoSistemaArquivo implements Serializable {
 
         diario.limpar();
         salvarEstado();
-        escreverLogLegivel("[CONCLUÍDO] Operação 'DELETAR_PASTA' para '"+nome+"' concluída. Diário limpo.");
+        escreverLogLegivel("[CONCLUIDO] Operacao 'DELETAR_PASTA' para '"+nome+"' concluida. Diario limpo.");
     }
 
     public void renomearPasta(String nomeAntigo,String nomeNovo){
@@ -435,7 +447,7 @@ public class SimuladoSistemaArquivo implements Serializable {
 
         diario.limpar();
         salvarEstado();
-        escreverLogLegivel("[CONCLUÍDO] Operação 'RENOMEAR_PASTA' para '"+nomeAntigo+"' -> '"+nomeNovo+"' concluída. Diário limpo.");
+        escreverLogLegivel("[CONCLUIDO] Operacao 'RENOMEAR_PASTA' para '"+nomeAntigo+"' -> '"+nomeNovo+"' concluida. Diario limpo.");
     }
 
     public void listarConteudo(){

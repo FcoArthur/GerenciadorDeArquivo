@@ -49,7 +49,7 @@ public class Pasta implements Serializable {
 
     //adicionar uma subpasta na pasta
     public void addSubPasta(Pasta pasta){
-        this.subPastas.remove(pasta);
+        this.subPastas.add(pasta);
         pasta.setParente(this);
     }
     //remover uma subpasta
