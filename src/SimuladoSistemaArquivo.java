@@ -19,7 +19,7 @@ public class SimuladoSistemaArquivo implements Serializable {
     private static final long serialVersionUID = 1L;
     private Pasta root;
     private Pasta pastaAtual;
-    private Diario diario; // O objeto Diario ainda existe para criar as entradas para o log TXT
+    private Diario diario; 
     private static final String ESTADODOARQUIVODOSISTEMA_ARQUIVO = "arquivodosistema_estado.ser";
     private static final String LOG_JORNAL_LEGIVEL = "log_jornal.txt";
 
@@ -28,10 +28,10 @@ public class SimuladoSistemaArquivo implements Serializable {
         this.pastaAtual = root;
         this.diario = new Diario();
         carregarEstado();
-        // recuperarDoDiario(); // REMOVIDO: Não há mais funcionalidade de recuperação
+        
     }
 
-    // Método para escrever no log TXT
+    
     private void escreverLogLegivel(String mensagem) {
         try (FileWriter fw = new FileWriter(LOG_JORNAL_LEGIVEL, true);
              PrintWriter pw = new PrintWriter(fw)) {
@@ -43,7 +43,7 @@ public class SimuladoSistemaArquivo implements Serializable {
         }
     }
 
-    //salvar e carregar
+    
     private void salvarEstado(){
         try(ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(ESTADODOARQUIVODOSISTEMA_ARQUIVO))){
             oos.writeObject(this.root);
@@ -139,16 +139,16 @@ public class SimuladoSistemaArquivo implements Serializable {
         }
 
         EntradaNoDiario novaEntrada = new EntradaNoDiario(EntradaNoDiario.TipoDeOperacao.CRIAR_ARQUIVO, getPathAtual(),nome,conteudo);
-        diario.addDiario(novaEntrada); // Adiciona ao objeto diário em memória (para uso no log TXT)
-        salvarEstado(); // Salva o estado do sistema (pasta/arquivos)
+        diario.addDiario(novaEntrada); 
+        salvarEstado(); 
         escreverLogLegivel("[INICIADO] " + novaEntrada.toString());
 
 
         pastaAtual.addArquivo(new Arquivo(nome, conteudo));
         System.out.println("Arquivo '"+nome+"' criado com sucesso.");
 
-        diario.limpar(); // Limpa o objeto diário em memória (apenas para organização, não para persistência)
-        salvarEstado(); // Salva o estado do sistema novamente
+        diario.limpar(); 
+        salvarEstado(); 
         escreverLogLegivel("[CONCLUIDO] Operacao 'CRIAR_ARQUIVO' para '"+nome+"' concluida. Diario limpo.");
     }
 
@@ -337,7 +337,7 @@ public class SimuladoSistemaArquivo implements Serializable {
     } 
 
     public void Comando(){
-        System.out.println("Simulador de Sistema de Arquivos"); // Removido "com Journaling"
+        System.out.println("Simulador de Sistema de Arquivos"); 
         System.out.println("Comandos disponíveis:");
         System.out.println("  cs                          - Listar comandos (este menu)");
         System.out.println("  ls                          - Listar conteúdo do diretório atual");
