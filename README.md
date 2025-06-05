@@ -4,7 +4,6 @@ Este projeto implementa um simulador de sistema de arquivos básico em Java, com
 
 ## 🚀 Como Começar
 
-Bem-vindo ao mundo Java no VS Code! Aqui está um guia para você começar a trabalhar com este projeto.
 
 ### Estrutura de Pastas
 
@@ -17,9 +16,6 @@ Os arquivos `.class` compilados serão gerados na pasta `bin` por padrão.
 
 > Se quiser personalizar a estrutura de pastas, abra `.vscode/settings.json` e atualize as configurações relacionadas lá.
 
-### Gerenciamento de Dependências
-
-A visualização `JAVA PROJECTS` no VS Code permite gerenciar suas dependências. Mais detalhes podem ser encontrados [aqui](https://github.com/microsoft/vscode-java-dependency#manage-dependencies).
 
 ## 📄 Relatório do Simulador de Sistema de Arquivos
 
@@ -74,14 +70,7 @@ Para compilar e executar o simulador:
 
 1.  **Clone o repositório** (ou baixe os arquivos diretamente).
 2.  **Navegue até a pasta raiz do projeto** no seu terminal.
-3.  **Compile os arquivos Java**:
-    ```bash
-    javac -d bin src/*.java
-    ```
-4.  **Execute o simulador**:
-    ```bash
-    java -cp bin SimuladoSistemaArquivo
-    ```
-5.  O simulador iniciará e você verá um prompt de comando (`/$`). Digite `cs` para ver a lista de comandos disponíveis.
+3.  **Execute o simulador**:
+4.  O simulador iniciará e você verá um prompt de comando (`/$`). Digite `cs` para ver a lista de comandos disponíveis.
 
 Ao executar operações que modificam o sistema de arquivos (como `mkfile`, `mkdir`, `rmfile`, etc.), um arquivo `log_jornal.txt` será criado ou atualizado na mesma pasta onde o simulador é executado, contendo os registros de todas as operações. O estado do sistema de arquivos será salvo em `arquivodosistema_estado.ser`.
