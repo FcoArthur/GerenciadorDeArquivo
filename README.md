@@ -71,3 +71,10 @@ Para compilar e executar o simulador:
 4.  O simulador iniciará e você verá um prompt de comando (`/$`). Digite `cs` para ver a lista de comandos disponíveis.
 
 Ao executar operações que modificam o sistema de arquivos (como `mkfile`, `mkdir`, `rmfile`, etc.), um arquivo `log_jornal.txt` será criado ou atualizado na mesma pasta onde o simulador é executado, contendo os registros de todas as operações. O estado do sistema de arquivos será salvo em `arquivodosistema_estado.ser`.
+
+
+link Github:
+https://github.com/FcoArthur/GerenciadorDeArquivo
+Equipe
+Paulo Marconi - 2310435
+Francisco Arthur Nunes Montenegro - 2317448
