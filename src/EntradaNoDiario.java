@@ -45,7 +45,7 @@ public class EntradaNoDiario implements Serializable {
     
     @Override
     public String toString(){
-        String base = "Operação: " + tipo + ", Caminho "+ caminho;
+        String base = "Operacao: " + tipo + ", Caminho "+ caminho;
         if(novoCaminho != null){
             base += ", Novo Caminho/Nome " + novoCaminho;
         }

@@ -16,25 +16,24 @@ import java.time.format.DateTimeFormatter; // Import para o log TXT
 
 
 public class SimuladoSistemaArquivo implements Serializable {
-    private static final long serialVersionUID = 1L; // Corrigido de serialUID para serialVersionUID
+    private static final long serialVersionUID = 1L;
     private Pasta root;
     private Pasta pastaAtual;
-    private Diario diario;
-    private static final String DIARIO_ARQUIVO = "arquivodosistema_diario.ser";
+    private Diario diario; // O objeto Diario ainda existe para criar as entradas para o log TXT
     private static final String ESTADODOARQUIVODOSISTEMA_ARQUIVO = "arquivodosistema_estado.ser";
-    private static final String LOG_JORNAL_LEGIVEL = "log_jornal.txt"; // NOVO: Arquivo de log TXT
+    private static final String LOG_JORNAL_LEGIVEL = "log_jornal.txt";
 
     public SimuladoSistemaArquivo() {
         this.root = new Pasta("root");
         this.pastaAtual = root;
         this.diario = new Diario();
         carregarEstado();
-        recuperarDoDiario(); // **IMPORTANTE: DESCOMENTADO PARA O JOURNALING FUNCIONAR**
+        // recuperarDoDiario(); // REMOVIDO: Não há mais funcionalidade de recuperação
     }
 
-    // NOVO: Método para escrever no log TXT
+    // Método para escrever no log TXT
     private void escreverLogLegivel(String mensagem) {
-        try (FileWriter fw = new FileWriter(LOG_JORNAL_LEGIVEL, true); // 'true' para adicionar ao final
+        try (FileWriter fw = new FileWriter(LOG_JORNAL_LEGIVEL, true);
              PrintWriter pw = new PrintWriter(fw)) {
             LocalDateTime agora = LocalDateTime.now();
             DateTimeFormatter formatador = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -48,17 +47,10 @@ public class SimuladoSistemaArquivo implements Serializable {
     private void salvarEstado(){
         try(ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(ESTADODOARQUIVODOSISTEMA_ARQUIVO))){
             oos.writeObject(this.root);
-            // System.out.println("estado do sis,arq salvo"); // Comentado para evitar poluir o console
         }catch(IOException e){
             System.err.println("Erro ao salvar estado do sistema de arquivos: "+ e.getMessage());
         }
 
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(DIARIO_ARQUIVO))) {
-            oos.writeObject(this.diario);
-            // System.out.println("diario salvo"); // Comentado para evitar poluir o console
-        } catch(IOException e){
-            System.err.println("Erro ao salvar diário: "+e.getMessage());
-        }
     }
     
     private void carregarEstado(){
@@ -77,114 +69,9 @@ public class SimuladoSistemaArquivo implements Serializable {
         } else {
             System.out.println("Nenhum estado do sistema de arquivos existente. Criando um novo.");
         }
-        File arquivoDoDiario = new File(DIARIO_ARQUIVO);
-        if(arquivoDoDiario.exists()){
-            try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(arquivoDoDiario))){
-                this.diario = (Diario) ois.readObject();
-                System.out.println("Diário de operações carregado.");
-            } catch (IOException | ClassNotFoundException e) {
-                System.err.println("Erro ao carregar diário: "+ e.getMessage());
-                this.diario = new Diario();
-            }
-        }else {
-            System.out.println("Nenhum diário existente. Criando um novo.");
-        }
     }
 
-    private void recuperarDoDiario(){
-        if(!diario.getDiarios().isEmpty()){
-            System.out.println("Iniciando recuperação do diário...");
-            escreverLogLegivel("--- INICIANDO RECUPERAÇÃO DO DIARIO ---");
-            for (EntradaNoDiario entradaDiario : diario.getDiarios()) { // Renomeado 'diario' para 'entradaDiario' para evitar conflito
-                System.out.println("Recuperando: " + entradaDiario);
-                escreverLogLegivel("[RECUPERANDO] " + entradaDiario.toString());
-                switch (entradaDiario.getTipo()) {
-                    case CRIAR_ARQUIVO:
-                        // No caso de CRIAR_ARQUIVO, caminho é o diretório pai, novoCaminho é o nome do arquivo, conteudo é o conteúdo
-                        Pasta pastaCriarArquivo = getPastaPorCaminho(entradaDiario.getCaminho()).orElse(null);
-                        if(pastaCriarArquivo != null){
-                            if(!pastaCriarArquivo.encontrarArquivo(entradaDiario.getNovoCaminho()).isPresent()){
-                                pastaCriarArquivo.addArquivo(new Arquivo(entradaDiario.getNovoCaminho(), entradaDiario.getConteudo()));
-                                System.out.println("  Recuperado: Arquivo '"+ entradaDiario.getNovoCaminho() + "' criado em '" + entradaDiario.getCaminho() + "'");
-                            }
-                        }
-                        break;
-                    case DELETAR_ARQUIVO:
-                        // caminho é o diretório pai, novoCaminho é o nome do arquivo a ser deletado
-                        Pasta pastaDeletarArquivo = getPastaPorCaminho(entradaDiario.getCaminho()).orElse(null);
-                        if(pastaDeletarArquivo!= null){
-                            pastaDeletarArquivo.encontrarArquivo(entradaDiario.getNovoCaminho()).ifPresent(f ->{
-                                pastaDeletarArquivo.removerArquivo(f);
-                                System.out.println("  Recuperado: Arquivo '"+ entradaDiario.getNovoCaminho() + "' excluído de '"+ entradaDiario.getCaminho() + "'");
-                            });
-                        }
-                        break;
-                    case COPIAR_ARQUIVO:
-                        // caminho é o diretório de origem, novoCaminho é o nome do arquivo de origem, conteudo é o diretório de destino
-                        Pasta pastaCopiarOrigemArquivo = getPastaPorCaminho(entradaDiario.getCaminho()).orElse(null); // Corrigido
-                        Pasta pastaCopiarDestinoArquivo = getPastaPorCaminho(entradaDiario.getConteudo()).orElse(null); // Corrigido
-
-                        if(pastaCopiarOrigemArquivo!= null && pastaCopiarDestinoArquivo!=null){
-                            pastaCopiarOrigemArquivo.encontrarArquivo(entradaDiario.getNovoCaminho()).ifPresent(arquivoParaCopiar ->{
-                                if(!pastaCopiarDestinoArquivo.encontrarArquivo(arquivoParaCopiar.getNome()).isPresent()){
-                                    pastaCopiarDestinoArquivo.addArquivo(new Arquivo(arquivoParaCopiar.getNome(),arquivoParaCopiar.getConteudo()));
-                                    System.out.println("  Recuperado: Arquivo '"+arquivoParaCopiar.getNome()+ "' copiado de '"+entradaDiario.getCaminho()+"' para '"+entradaDiario.getConteudo()+"'");
-                                }
-                            });
-                        }
-                        break;
-                    case RENOMEAR_ARQUIVO:
-                        // caminho é o diretório pai, novoCaminho é o nome antigo, conteudo é o nome novo
-                        Pasta pastaRenomearArquivo = getPastaPorCaminho(entradaDiario.getCaminho()).orElse(null);
-                        if(pastaRenomearArquivo!=null){
-                            pastaRenomearArquivo.encontrarArquivo(entradaDiario.getNovoCaminho()).ifPresent(f->{
-                                f.setNome(entradaDiario.getConteudo());
-                                System.out.println("  Recuperado: Arquivo '"+entradaDiario.getNovoCaminho() + "' renomeado para '"+ entradaDiario.getConteudo()+ "' em '"+entradaDiario.getCaminho()+"'");
-                            });
-                        }
-                        break;
-                    case CRIAR_PASTA:
-                        // caminho é o diretório pai, novoCaminho é o nome da nova pasta
-                        Pasta pastaCriarPasta = getPastaPorCaminho(entradaDiario.getCaminho()).orElse(null);
-                        if(pastaCriarPasta!=null){
-                            if(!pastaCriarPasta.encontrarSubPasta(entradaDiario.getNovoCaminho()).isPresent()){
-                                pastaCriarPasta.addSubPasta(new Pasta(entradaDiario.getNovoCaminho()));
-                                System.out.println("  Recuperado: Diretório '"+entradaDiario.getNovoCaminho()+"' criado em '"+entradaDiario.getCaminho()+"'");
-                            }
-                        }
-                        break;
-                    case DELETAR_PASTA:
-                        // caminho é o diretório pai, novoCaminho é o nome da pasta a ser deletada
-                        Pasta pastaDeletarPasta = getPastaPorCaminho(entradaDiario.getCaminho()).orElse(null);
-                        if(pastaDeletarPasta!=null){
-                            pastaDeletarPasta.encontrarSubPasta(entradaDiario.getNovoCaminho()).ifPresent(d->{
-                                pastaDeletarPasta.removerSubPasta(d);
-                                System.out.println("  Recuperado: Diretório '"+ entradaDiario.getNovoCaminho()+"' excluído de '"+ entradaDiario.getCaminho()+"'");
-                            });
-                        }
-                        break;
-                    case RENOMEAR_PASTA:
-                        // caminho é o diretório pai, novoCaminho é o nome antigo, conteudo é o nome novo
-                        Pasta pastaRenomearPasta = getPastaPorCaminho(entradaDiario.getCaminho()).orElse(null);
-                        if(pastaRenomearPasta!=null){
-                            pastaRenomearPasta.encontrarSubPasta(entradaDiario.getNovoCaminho()).ifPresent(d->{
-                                d.setNome(entradaDiario.getConteudo());
-                                System.out.println("  Recuperado: Diretório '"+entradaDiario.getNovoCaminho() + "' renomeado para '"+ entradaDiario.getConteudo()+ "' em '"+entradaDiario.getCaminho()+"'");
-                            });
-                        }
-                        break;
-                }
-            }
-            diario.limpar();
-            salvarEstado();
-            System.out.println("Recuperação do diário concluída.");
-            escreverLogLegivel("--- RECUPERACAO DO DIARIO CONCLUIDA. Diario limpo. ---");
-        }else{
-            System.out.println("Diário vazio. Nenhuma recuperação necessária.");
-            escreverLogLegivel("Diario vazio na inicializacao. Nenhuma recuperacao necessaria.");
-        }
-    }
-
+ 
     public void mudarPasta(String path){
         if(path.equals("/")){
             pastaAtual=root;
@@ -252,27 +139,16 @@ public class SimuladoSistemaArquivo implements Serializable {
         }
 
         EntradaNoDiario novaEntrada = new EntradaNoDiario(EntradaNoDiario.TipoDeOperacao.CRIAR_ARQUIVO, getPathAtual(),nome,conteudo);
-        diario.addDiario(novaEntrada);
-        salvarEstado();
+        diario.addDiario(novaEntrada); // Adiciona ao objeto diário em memória (para uso no log TXT)
+        salvarEstado(); // Salva o estado do sistema (pasta/arquivos)
         escreverLogLegivel("[INICIADO] " + novaEntrada.toString());
-
-        // Adicionado para simular um atraso e permitir o teste de falha do journaling
-        try {
-            System.out.println("Simulando processamento... (Aperte Ctrl+C AGORA para testar o journaling)");
-            Thread.sleep(5000); // Atraso de 5 segundos (5000 milissegundos)
-        } catch (InterruptedException e) {
-            System.out.println("Operação interrompida. Verifique o diário na próxima inicialização.");
-            // Opcional: Você pode querer salvar o estado atual aqui para garantir que o diário seja persistido
-            // salvarEstado(); 
-            Thread.currentThread().interrupt(); // Restaura o status de interrupção
-        }
 
 
         pastaAtual.addArquivo(new Arquivo(nome, conteudo));
         System.out.println("Arquivo '"+nome+"' criado com sucesso.");
 
-        diario.limpar();
-        salvarEstado();
+        diario.limpar(); // Limpa o objeto diário em memória (apenas para organização, não para persistência)
+        salvarEstado(); // Salva o estado do sistema novamente
         escreverLogLegivel("[CONCLUIDO] Operacao 'CRIAR_ARQUIVO' para '"+nome+"' concluida. Diario limpo.");
     }
 
@@ -332,24 +208,24 @@ public class SimuladoSistemaArquivo implements Serializable {
         }
 
         if(fontePasta == null){
-            System.out.println("Erro: Diretório de origem '"+ caminhoPastaFonte +"' não existe."); // Corrigido a mensagem
+            System.out.println("Erro: Diretório de origem '"+ caminhoPastaFonte +"' não existe.");
             return;
         }
 
         Optional<Arquivo> arquivoParaCopiarOptional = fontePasta.encontrarArquivo(nomeDoArquivoFonte);
         if(!arquivoParaCopiarOptional.isPresent()){
-            System.out.println("Erro: Arquivo de origem '"+nomeDoArquivoFonte+"' não encontrado em '"+arquivoFonteCaminho+"'."); // Corrigido a mensagem
+            System.out.println("Erro: Arquivo de origem '"+nomeDoArquivoFonte+"' não encontrado em '"+arquivoFonteCaminho+"'.");
             return;
         }
         Arquivo arquivoParaCopiar = arquivoParaCopiarOptional.get();
 
         Pasta destinoPasta = getPastaPorCaminho(pastaDestino).orElse(null);
         if (destinoPasta==null) {
-            System.out.println("Erro: Diretório de destino '"+ pastaDestino +"' não encontrado."); // Corrigido a mensagem
+            System.out.println("Erro: Diretório de destino '"+ pastaDestino +"' não encontrado.");
             return;
         }
         if (destinoPasta.encontrarArquivo(arquivoParaCopiar.getNome()).isPresent()){
-            System.out.println("Erro: Já existe um arquivo com o nome '"+arquivoParaCopiar.getNome()+"' no destino."); // Corrigido a mensagem
+            System.out.println("Erro: Já existe um arquivo com o nome '"+arquivoParaCopiar.getNome()+"' no destino.");
             return;
         }
 
@@ -460,10 +336,10 @@ public class SimuladoSistemaArquivo implements Serializable {
         pastaAtual.getArquivos().forEach(f -> System.out.println("  [ARQ] "+ f.getNome()));
     } 
 
-    public void Comando(){ // Renomeado para seguir convenção de método (primeira letra minúscula)
-        System.out.println("Simulador de Sistema de Arquivos com Journaling");
+    public void Comando(){
+        System.out.println("Simulador de Sistema de Arquivos"); // Removido "com Journaling"
         System.out.println("Comandos disponíveis:");
-        System.out.println("  cs                          - Listar comandos (este menu)"); // Adicionado no código
+        System.out.println("  cs                          - Listar comandos (este menu)");
         System.out.println("  ls                          - Listar conteúdo do diretório atual");
         System.out.println("  cd <diretorio>              - Mudar de diretório");
         System.out.println("  mkdir <nome_diretorio>      - Criar diretório");
@@ -480,7 +356,7 @@ public class SimuladoSistemaArquivo implements Serializable {
     public static void main(String[] args) {
         SimuladoSistemaArquivo simulador = new SimuladoSistemaArquivo();
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-        simulador.Comando(); // Chamada para mostrar os comandos ao iniciar
+        simulador.Comando();
         String line;
         try{
             while (true) {
@@ -494,7 +370,7 @@ public class SimuladoSistemaArquivo implements Serializable {
 
                 switch (comando) {
                     case "cs":
-                        simulador.Comando(); // Re-exibe os comandos
+                        simulador.Comando();
                         break;
                     case "ls":
                         simulador.listarConteudo();

@@ -1,0 +1,209 @@
+--- Simulação de Sessão do Simulador de Sistema de Arquivos ---
+
+Início do Simulador:
+--------------------
+(O sistema de arquivos é carregado, ou um novo é criado se nenhum estado existia)
+Estado do sistema de arquivos carregado.
+Nenhum diário existente. Criando um novo.
+Simulador de Sistema de Arquivos
+Comandos disponíveis:
+  cs                          - Listar comandos (este menu)
+  ls                          - Listar conteúdo do diretório atual
+  cd <diretorio>              - Mudar de diretório
+  mkdir <nome_diretorio>      - Criar diretório
+  rmdir <nome_diretorio>      - Apagar diretório (deve estar vazio)
+  mvdir <antigo_nome> <novo_nome> - Renomear diretório
+  mkfile <nome_arquivo> <conteudo> - Criar arquivo
+  rmfile <nome_arquivo>       - Apagar arquivo
+  mvfile <antigo_nome> <novo_nome> - Renomear arquivo
+  cpfile <caminho_origem> <caminho_destino_diretorio> - Copiar arquivo
+  exit                        - Sair do simulador
+--------------------------------------------------
+
+--- Comandos e Saídas Esperadas ---
+
+Comando: `ls`
+Saída do Simulador:
+Conteúdo de /:
+  (Vazio)
+Log Esperado (`log_jornal.txt`):
+(Nenhuma entrada, pois 'ls' é uma operação de leitura, não de modificação de estado)
+
+Comando: `mkdir documentos`
+Saída do Simulador:
+Pasta 'documentos' criada.
+Log Esperado (`log_jornal.txt`):
+[DATA HORA] - [INICIADO] Operação: CRIAR_PASTA, Caminho /, Novo Caminho/Nome documentos
+[DATA HORA] - [CONCLUIDO] Operacao 'CRIAR_PASTA' para 'documentos' concluida. Diario limpo.
+
+Comando: `ls`
+Saída do Simulador:
+Conteúdo de /:
+  [DIR] documentos
+Log Esperado (`log_jornal.txt`):
+(Nenhuma entrada)
+
+Comando: `cd documentos`
+Saída do Simulador:
+Diretório atual: /documentos
+Log Esperado (`log_jornal.txt`):
+(Nenhuma entrada)
+
+Comando: `pwd` (Comando hipotético para mostrar o caminho atual - não implementado, mas para ilustrar)
+Saída do Simulador (esperada para `getPathAtual()`):
+/documentos$
+Log Esperado (`log_jornal.txt`):
+(Nenhuma entrada)
+
+Comando: `mkfile carta.txt "Ola, este e o conteudo da carta."`
+Saída do Simulador:
+Arquivo 'carta.txt' criado com sucesso.
+Log Esperado (`log_jornal.txt`):
+[DATA HORA] - [INICIADO] Operação: CRIAR_ARQUIVO, Caminho /documentos, Novo Caminho/Nome carta.txt, conteudo 'Ola, este e o conteudo da carta.'
+[DATA HORA] - [CONCLUIDO] Operacao 'CRIAR_ARQUIVO' para 'carta.txt' concluida. Diario limpo.
+
+Comando: `ls`
+Saída do Simulador:
+Conteúdo de /documentos:
+  [ARQ] carta.txt
+Log Esperado (`log_jornal.txt`):
+(Nenhuma entrada)
+
+Comando: `mkfile relatorio.pdf "Dados importantes do projeto"`
+Saída do Simulador:
+Arquivo 'relatorio.pdf' criado com sucesso.
+Log Esperado (`log_jornal.txt`):
+[DATA HORA] - [INICIADO] Operação: CRIAR_ARQUIVO, Caminho /documentos, Novo Caminho/Nome relatorio.pdf, conteudo 'Dados importantes do projeto'
+[DATA HORA] - [CONCLUIDO] Operacao 'CRIAR_ARQUIVO' para 'relatorio.pdf' concluida. Diario limpo.
+
+Comando: `mvfile carta.txt carta_final.txt`
+Saída do Simulador:
+Arquivo 'carta.txt' renomeado para 'carta_final.txt'.
+Log Esperado (`log_jornal.txt`):
+[DATA HORA] - [INICIADO] Operação: RENOMEAR_ARQUIVO, Caminho /documentos, Novo Caminho/Nome carta.txt, conteudo carta_final.txt
+[DATA HORA] - [CONCLUIDO] Operacao 'RENOMEAR_ARQUIVO' para 'carta.txt' -> 'carta_final.txt' concluida. Diario limpo.
+
+Comando: `ls`
+Saída do Simulador:
+Conteúdo de /documentos:
+  [ARQ] carta_final.txt
+  [ARQ] relatorio.pdf
+Log Esperado (`log_jornal.txt`):
+(Nenhuma entrada)
+
+Comando: `cd ..`
+Saída do Simulador:
+Diretório atual: /
+Log Esperado (`log_jornal.txt`):
+(Nenhuma entrada)
+
+Comando: `mkdir imagens`
+Saída do Simulador:
+Pasta 'imagens' criada.
+Log Esperado (`log_jornal.txt`):
+[DATA HORA] - [INICIADO] Operação: CRIAR_PASTA, Caminho /, Novo Caminho/Nome imagens
+[DATA HORA] - [CONCLUIDO] Operacao 'CRIAR_PASTA' para 'imagens' concluida. Diario limpo.
+
+Comando: `ls`
+Saída do Simulador:
+Conteúdo de /:
+  [DIR] documentos
+  [DIR] imagens
+Log Esperado (`log_jornal.txt`):
+(Nenhuma entrada)
+
+Comando: `cpfile /documentos/carta_final.txt /imagens`
+Saída do Simulador:
+Arquivo 'carta_final.txt' copiado para '/imagens'.
+Log Esperado (`log_jornal.txt`):
+[DATA HORA] - [INICIADO] Operação: COPIAR_ARQUIVO, Caminho /documentos, Novo Caminho/Nome carta_final.txt, conteudo /imagens
+[DATA HORA] - [CONCLUIDO] Operacao 'COPIAR_ARQUIVO' para 'carta_final.txt' concluida. Diario limpo.
+
+Comando: `cd imagens`
+Saída do Simulador:
+Diretório atual: /imagens
+Log Esperado (`log_jornal.txt`):
+(Nenhuma entrada)
+
+Comando: `ls`
+Saída do Simulador:
+Conteúdo de /imagens:
+  [ARQ] carta_final.txt
+Log Esperado (`log_jornal.txt`):
+(Nenhuma entrada)
+
+Comando: `rmfile carta_final.txt`
+Saída do Simulador:
+Arquivo 'carta_final.txt' apagado com sucesso.
+Log Esperado (`log_jornal.txt`):
+[DATA HORA] - [INICIADO] Operação: DELETAR_ARQUIVO, Caminho /imagens, Novo Caminho/Nome carta_final.txt
+[DATA HORA] - [CONCLUIDO] Operacao 'DELETAR_ARQUIVO' para 'carta_final.txt' concluida. Diario limpo.
+
+Comando: `ls`
+Saída do Simulador:
+Conteúdo de /imagens:
+  (Vazio)
+Log Esperado (`log_jornal.txt`):
+(Nenhuma entrada)
+
+Comando: `cd ..`
+Saída do Simulador:
+Diretório atual: /
+Log Esperado (`log_jornal.txt`):
+(Nenhuma entrada)
+
+Comando: `mvdir imagens fotos`
+Saída do Simulador:
+Pasta 'imagens' renomeada para 'fotos'.
+Log Esperado (`log_jornal.txt`):
+[DATA HORA] - [INICIADO] Operação: RENOMEAR_PASTA, Caminho /, Novo Caminho/Nome imagens, conteudo fotos
+[DATA HORA] - [CONCLUIDO] Operacao 'RENOMEAR_PASTA' para 'imagens' -> 'fotos' concluida. Diario limpo.
+
+Comando: `ls`
+Saída do Simulador:
+Conteúdo de /:
+  [DIR] documentos
+  [DIR] fotos
+Log Esperado (`log_jornal.txt`):
+(Nenhuma entrada)
+
+Comando: `rmdir fotos`
+Saída do Simulador:
+Pasta 'fotos' apagada.
+Log Esperado (`log_jornal.txt`):
+[DATA HORA] - [INICIADO] Operação: DELETAR_PASTA, Caminho /, Novo Caminho/Nome fotos
+[DATA HORA] - [CONCLUIDO] Operacao 'DELETAR_PASTA' para 'fotos' concluida. Diario limpo.
+
+Comando: `ls`
+Saída do Simulador:
+Conteúdo de /:
+  [DIR] documentos
+Log Esperado (`log_jornal.txt`):
+(Nenhuma entrada)
+
+Comando: `cs`
+Saída do Simulador:
+Simulador de Sistema de Arquivos
+Comandos disponíveis:
+  cs                          - Listar comandos (este menu)
+  ls                          - Listar conteúdo do diretório atual
+  cd <diretorio>              - Mudar de diretório
+  mkdir <nome_diretorio>      - Criar diretório
+  rmdir <nome_diretorio>      - Apagar diretório (deve estar vazio)
+  mvdir <antigo_nome> <novo_nome> - Renomear diretório
+  mkfile <nome_arquivo> <conteudo> - Criar arquivo
+  rmfile <nome_arquivo>       - Apagar arquivo
+  mvfile <antigo_nome> <novo_nome> - Renomear arquivo
+  cpfile <caminho_origem> <caminho_destino_diretorio> - Copiar arquivo
+  exit                        - Sair do simulador
+--------------------------------------------------
+Log Esperado (`log_jornal.txt`):
+(Nenhuma entrada)
+
+Comando: `exit`
+Saída do Simulador:
+Saindo do simulador...
+Log Esperado (`log_jornal.txt`):
+(Nenhuma entrada)
+
+--- Fim da Simulação ---
