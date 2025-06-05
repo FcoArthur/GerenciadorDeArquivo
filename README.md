@@ -14,9 +14,6 @@ O workspace contém duas pastas por padrão:
 
 Os arquivos `.class` compilados serão gerados na pasta `bin` por padrão.
 
-> Se quiser personalizar a estrutura de pastas, abra `.vscode/settings.json` e atualize as configurações relacionadas lá.
-
-
 ## 📄 Relatório do Simulador de Sistema de Arquivos
 
 ### Metodologia
