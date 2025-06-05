@@ -75,6 +75,8 @@ Ao executar operações que modificam o sistema de arquivos (como `mkfile`, `mkd
 
 link Github:
 https://github.com/FcoArthur/GerenciadorDeArquivo
+
+
 Equipe
 Paulo Marconi - 2310435
 Francisco Arthur Nunes Montenegro - 2317448
