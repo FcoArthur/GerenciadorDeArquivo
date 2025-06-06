@@ -9,17 +9,19 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
-import java.time.LocalDateTime; // Import para o log TXT
-import java.time.format.DateTimeFormatter; // Import para o log TXT
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 
 public class SimuladoSistemaArquivo implements Serializable {
     private static final long serialVersionUID = 1L;
     private Pasta root;
     private Pasta pastaAtual;
-    private Diario diario; // O objeto Diario ainda existe para criar as entradas para o log TXT
+    private Diario diario;
     private static final String ESTADODOARQUIVODOSISTEMA_ARQUIVO = "arquivodosistema_estado.ser";
     private static final String LOG_JORNAL_LEGIVEL = "log_jornal.txt";
 
@@ -28,10 +30,8 @@ public class SimuladoSistemaArquivo implements Serializable {
         this.pastaAtual = root;
         this.diario = new Diario();
         carregarEstado();
-        // recuperarDoDiario(); // REMOVIDO: Não há mais funcionalidade de recuperação
     }
 
-    // Método para escrever no log TXT
     private void escreverLogLegivel(String mensagem) {
         try (FileWriter fw = new FileWriter(LOG_JORNAL_LEGIVEL, true);
              PrintWriter pw = new PrintWriter(fw)) {
@@ -43,14 +43,12 @@ public class SimuladoSistemaArquivo implements Serializable {
         }
     }
 
-    //salvar e carregar
     private void salvarEstado(){
         try(ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(ESTADODOARQUIVODOSISTEMA_ARQUIVO))){
             oos.writeObject(this.root);
         }catch(IOException e){
             System.err.println("Erro ao salvar estado do sistema de arquivos: "+ e.getMessage());
         }
-
     }
     
     private void carregarEstado(){
@@ -71,7 +69,6 @@ public class SimuladoSistemaArquivo implements Serializable {
         }
     }
 
- 
     public void mudarPasta(String path){
         if(path.equals("/")){
             pastaAtual=root;
@@ -138,18 +135,18 @@ public class SimuladoSistemaArquivo implements Serializable {
             return;
         }
 
-        EntradaNoDiario novaEntrada = new EntradaNoDiario(EntradaNoDiario.TipoDeOperacao.CRIAR_ARQUIVO, getPathAtual(),nome,conteudo);
-        diario.addDiario(novaEntrada); // Adiciona ao objeto diário em memória (para uso no log TXT)
-        salvarEstado(); // Salva o estado do sistema (pasta/arquivos)
-        escreverLogLegivel("[INICIADO] " + novaEntrada.toString());
-
+        String operacao = "CRIAR_ARQUIVO";
+        String local = getPathAtual();
+        String nomeCriado = nome;
+        String logMessage = "[SALVO] Operacao: " + operacao + " // local " + local + " // nome do arquivo " + nomeCriado;
+        diario.addDiario(logMessage);
+        escreverLogLegivel(logMessage);
+        salvarEstado();
 
         pastaAtual.addArquivo(new Arquivo(nome, conteudo));
         System.out.println("Arquivo '"+nome+"' criado com sucesso.");
-
-        diario.limpar(); // Limpa o objeto diário em memória (apenas para organização, não para persistência)
-        salvarEstado(); // Salva o estado do sistema novamente
-        escreverLogLegivel("[CONCLUIDO] Operacao 'CRIAR_ARQUIVO' para '"+nome+"' concluida. Diario limpo.");
+        diario.limpar();
+        salvarEstado();
     }
 
     public void deletarArquivo(String nome){
@@ -158,17 +155,19 @@ public class SimuladoSistemaArquivo implements Serializable {
             System.out.println("Erro: Arquivo '"+nome+"' não localizado.");
             return;
         }
-        EntradaNoDiario novaEntrada = new EntradaNoDiario(EntradaNoDiario.TipoDeOperacao.DELETAR_ARQUIVO,getPathAtual(),nome);
-        diario.addDiario(novaEntrada);
+        String operacao = "DELETAR_ARQUIVO";
+        String local = getPathAtual();
+        String nomeExcluido = nome;
+        String logMessage = "[SALVO] Operacao: " + operacao + " // local " + local + " // nome do arquivo " + nomeExcluido;
+        diario.addDiario(logMessage);
+        escreverLogLegivel(logMessage);
         salvarEstado();
-        escreverLogLegivel("[INICIADO] " + novaEntrada.toString());
 
         pastaAtual.removerArquivo(arquivoParaDeletar.get());
         System.out.println("Arquivo '"+nome+"' apagado com sucesso.");
 
         diario.limpar();
         salvarEstado();
-        escreverLogLegivel("[CONCLUIDO] Operação 'DELETAR_ARQUIVO' para '"+nome+"' concluida. Diario limpo.");
     }
 
     public void renomearArquivo(String nomeVelho,String nomeNovo){
@@ -181,16 +180,19 @@ public class SimuladoSistemaArquivo implements Serializable {
             System.out.println("Erro: Já existe pasta/diretório com o nome '"+ nomeNovo+"'.");
             return;
         }
-        EntradaNoDiario novaEntrada = new EntradaNoDiario(EntradaNoDiario.TipoDeOperacao.RENOMEAR_ARQUIVO,getPathAtual(),nomeVelho,nomeNovo);
-        diario.addDiario(novaEntrada);
+        String operacao = "RENOMEAR_ARQUIVO";
+        String local = getPathAtual();
+        String nomeAntigo = nomeVelho; 
+        String nomeNovoLog = nomeNovo;
+        String logMessage = "[SALVO] Operacao: " + operacao + " // local " + local + " // nome do arquivo (de/para) " + nomeAntigo + "/" + nomeNovoLog;
+        diario.addDiario(logMessage);
+        escreverLogLegivel(logMessage);
         salvarEstado();
-        escreverLogLegivel("[INICIADO] " + novaEntrada.toString());
 
         arquivoParaRenomear.get().setNome(nomeNovo);
         System.out.println("Arquivo '"+nomeVelho+"' renomeado para '"+nomeNovo+"'.");
         diario.limpar();
         salvarEstado();
-        escreverLogLegivel("[CONCLUIDO] Operacao 'RENOMEAR_ARQUIVO' para '"+nomeVelho+"' -> '"+nomeNovo+"' concluida. Diario limpo.");
     }
 
     public void copiarArquivo(String arquivoFonteCaminho, String pastaDestino){
@@ -229,17 +231,20 @@ public class SimuladoSistemaArquivo implements Serializable {
             return;
         }
 
-        EntradaNoDiario novaEntrada = new EntradaNoDiario(EntradaNoDiario.TipoDeOperacao.COPIAR_ARQUIVO, getPathAtual(fontePasta),arquivoParaCopiar.getNome(),getPathAtual(destinoPasta));
-        diario.addDiario(novaEntrada);
+        String operacao = "COPIAR_ARQUIVO";
+        String local = getPathAtual(fontePasta);
+        String nomeCopiado = arquivoParaCopiar.getNome();
+        String destinoLog = getPathAtual(destinoPasta);
+        String logMessage = "[SALVO] Operacao: " + operacao + " // local " + local + " // nome do arquivo " + nomeCopiado + " para " + destinoLog;
+        diario.addDiario(logMessage);
+        escreverLogLegivel(logMessage);
         salvarEstado();
-        escreverLogLegivel("[INICIADO] " + novaEntrada.toString());
 
         destinoPasta.addArquivo(new Arquivo(arquivoParaCopiar.getNome(),arquivoParaCopiar.getConteudo()));
         System.out.println("Arquivo '"+ arquivoParaCopiar.getNome()+"' copiado para '"+pastaDestino+"'.");
 
         diario.limpar();
         salvarEstado();
-        escreverLogLegivel("[CONCLUIDO] Operacao 'COPIAR_ARQUIVO' para '"+arquivoParaCopiar.getNome()+"' concluida. Diario limpo.");
     }
 
     private String getPathAtual(Pasta pas){
@@ -265,41 +270,69 @@ public class SimuladoSistemaArquivo implements Serializable {
             return;
         }
 
-        EntradaNoDiario novaEntrada = new EntradaNoDiario(EntradaNoDiario.TipoDeOperacao.CRIAR_PASTA,getPathAtual(), nome);
-        diario.addDiario(novaEntrada);
+        String operacao = "CRIAR_PASTA";
+        String local = getPathAtual();
+        String nomeCriado = nome;
+        String logMessage = "[SALVO] Operacao: " + operacao + " // local " + local + " // nome da pasta " + nomeCriado;
+        diario.addDiario(logMessage);
+        escreverLogLegivel(logMessage);
         salvarEstado();
-        escreverLogLegivel("[INICIADO] " + novaEntrada.toString());
         
         pastaAtual.addSubPasta(new Pasta(nome));
         System.out.println("Pasta '"+nome+"' criada.");
 
         diario.limpar();
         salvarEstado();
-        escreverLogLegivel("[CONCLUIDO] Operacao 'CRIAR_PASTA' para '"+nome+"' concluida. Diario limpo.");
+    }
+
+    private void removerPastaRecursivamente(Pasta pasta) {
+        List<Arquivo> arquivosParaRemover = new ArrayList<>(pasta.getArquivos());
+        for (Arquivo arquivo : arquivosParaRemover) {
+            pasta.removerArquivo(arquivo);
+            System.out.println("  Apagando arquivo: " + arquivo.getNome());
+            String operacao = "DELETAR_ARQUIVO_RECURSIVO";
+            String local = getPathAtual(pasta);
+            String nomeExcluido = arquivo.getNome();
+            String logMessage = "[SALVO] Operacao: " + operacao + " // local " + local + " // nome do arquivo " + nomeExcluido;
+            escreverLogLegivel(logMessage);
+        }
+
+        List<Pasta> subPastasParaRemover = new ArrayList<>(pasta.getSubPastas());
+        for (Pasta subPasta : subPastasParaRemover) {
+            removerPastaRecursivamente(subPasta);
+            pasta.removerSubPasta(subPasta);
+            System.out.println("  Apagando subpasta: " + subPasta.getNome());
+            String operacao = "DELETAR_PASTA_RECURSIVO";
+            String local = getPathAtual(pasta);
+            String nomeExcluido = subPasta.getNome();
+            String logMessage = "[SALVO] Operacao: " + operacao + " // local " + local + " // nome da pasta " + nomeExcluido;
+            escreverLogLegivel(logMessage);
+        }
     }
 
     public void deletarPasta(String nome){
-        Optional<Pasta> pastaParaDeletar = pastaAtual.encontrarSubPasta((nome));
-        if(!pastaParaDeletar.isPresent()){
+        Optional<Pasta> pastaParaDeletarOptional = pastaAtual.encontrarSubPasta(nome);
+        if(!pastaParaDeletarOptional.isPresent()){
             System.out.println("Erro: Pasta '"+nome+"' não encontrada.");
             return;
         }
-        if(!pastaParaDeletar.get().getArquivos().isEmpty() || !pastaParaDeletar.get().getSubPastas().isEmpty()){
-            System.out.println("Erro: Pasta '"+nome+"' não está vazia. Esvazie-a primeiro.");
-            return;
-        }
+        Pasta pastaParaDeletar = pastaParaDeletarOptional.get();
 
-        EntradaNoDiario novaEntrada = new EntradaNoDiario(EntradaNoDiario.TipoDeOperacao.DELETAR_PASTA,getPathAtual(), nome);
-        diario.addDiario(novaEntrada);
+        String operacao = "DELETAR_PASTA";
+        String local = getPathAtual();
+        String nomeExcluido = nome;
+        String logMessage = "[SALVO] Operacao: " + operacao + " // local " + local + " // nome da pasta " + nomeExcluido;
+        diario.addDiario(logMessage);
+        escreverLogLegivel(logMessage); 
         salvarEstado();
-        escreverLogLegivel("[INICIADO] " + novaEntrada.toString());
 
-        pastaAtual.removerSubPasta(pastaParaDeletar.get());
-        System.out.println("Pasta '"+nome+"' apagada.");
+        removerPastaRecursivamente(pastaParaDeletar);
+        
+        pastaAtual.removerSubPasta(pastaParaDeletar);
+        System.out.println("Pasta '"+nome+"' e seu conteúdo apagados com sucesso.");
 
         diario.limpar();
         salvarEstado();
-        escreverLogLegivel("[CONCLUIDO] Operacao 'DELETAR_PASTA' para '"+nome+"' concluida. Diario limpo.");
     }
 
     public void renomearPasta(String nomeAntigo,String nomeNovo){
@@ -313,17 +346,20 @@ public class SimuladoSistemaArquivo implements Serializable {
             return;
         }
 
-        EntradaNoDiario novaEntrada = new EntradaNoDiario(EntradaNoDiario.TipoDeOperacao.RENOMEAR_PASTA,getPathAtual(),nomeAntigo, nomeNovo);
-        diario.addDiario(novaEntrada);
+        String operacao = "RENOMEAR_PASTA";
+        String local = getPathAtual();
+        String nomeAntigoLog = nomeAntigo;
+        String nomeNovoLog = nomeNovo;
+        String logMessage = "[SALVO] Operacao: " + operacao + " // local " + local + " // nome da pasta (de/para) " + nomeAntigoLog + "/" + nomeNovoLog;
+        diario.addDiario(logMessage);
+        escreverLogLegivel(logMessage);
         salvarEstado();
-        escreverLogLegivel("[INICIADO] " + novaEntrada.toString());
 
         pastaParaRenomear.get().setNome(nomeNovo);
         System.out.println("Pasta '"+nomeAntigo+"' renomeada para '"+nomeNovo+"'.");
 
         diario.limpar();
         salvarEstado();
-        escreverLogLegivel("[CONCLUIDO] Operacao 'RENOMEAR_PASTA' para '"+nomeAntigo+"' -> '"+nomeNovo+"' concluida. Diario limpo.");
     }
 
     public void listarConteudo(){
@@ -337,13 +373,13 @@ public class SimuladoSistemaArquivo implements Serializable {
     } 
 
     public void Comando(){
-        System.out.println("Simulador de Sistema de Arquivos"); // Removido "com Journaling"
+        System.out.println("Simulador de Sistema de Arquivos");
         System.out.println("Comandos disponíveis:");
         System.out.println("  cs                          - Listar comandos (este menu)");
         System.out.println("  ls                          - Listar conteúdo do diretório atual");
         System.out.println("  cd <diretorio>              - Mudar de diretório");
         System.out.println("  mkdir <nome_diretorio>      - Criar diretório");
-        System.out.println("  rmdir <nome_diretorio>      - Apagar diretório (deve estar vazio)");
+        System.out.println("  rmdir <nome_diretorio>      - Apagar diretório (inclusive se tiver conteúdo)");
         System.out.println("  mvdir <antigo_nome> <novo_nome> - Renomear diretório");
         System.out.println("  mkfile <nome_arquivo> <conteudo> - Criar arquivo");
         System.out.println("  rmfile <nome_arquivo>       - Apagar arquivo");

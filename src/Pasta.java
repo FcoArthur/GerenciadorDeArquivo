@@ -5,10 +5,10 @@ import java.util.Optional;
 
 public class Pasta implements Serializable {
     private static final long serialUID = 1L;
-    private String nome;//nome da pasta
-    private List<Arquivo> arquivos;//lista de Arquivos dentro da pasta
-    private List<Pasta> subPastas;//lista de subpastas dentro da pasta (e uma pasta)
-    private Pasta parente;//relação para a subpasta e pasta
+    private String nome;
+    private List<Arquivo> arquivos;
+    private List<Pasta> subPastas;
+    private Pasta parente;
     
     public Pasta(String nome) {
         this.nome = nome;
@@ -35,38 +35,41 @@ public class Pasta implements Serializable {
         this.parente = parente;
     }
 
-    //metodos kk...
-
-    //adicionar um arquivo em uma pasta
     public void addArquivo(Arquivo arquivo){
         this.arquivos.add(arquivo);
     }
 
-    //remover um arquivo da pasta
     public void removerArquivo(Arquivo arquivo){
         this.arquivos.remove(arquivo);
     }
 
-    //adicionar uma subpasta na pasta
     public void addSubPasta(Pasta pasta){
         this.subPastas.add(pasta);
         pasta.setParente(this);
     }
-    //remover uma subpasta
     public void removerSubPasta(Pasta pasta){
         this.subPastas.remove(pasta);
     }
 
-    //encontrar arquivo na pasta
     public Optional<Arquivo> encontrarArquivo(String nome){
         return arquivos.stream().filter(f -> f.getNome().equals(nome)).findFirst();
     }
 
-    //encontrar subpasta na pasta
     public Optional<Pasta> encontrarSubPasta(String nome){
         return subPastas.stream().filter(d -> d.getNome().equals(nome)).findFirst();
     }
     
+  
+    public void limparConteudoRecursivamente() {
+        
+        this.arquivos.clear();
+        
+        for (Pasta subPasta : new ArrayList<>(this.subPastas)) { 
+            subPasta.limparConteudoRecursivamente(); 
+            this.removerSubPasta(subPasta);
+        }
+    }
+
     @Override
     public String toString(){
         return "Pasta: "+ nome;

@@ -27,6 +27,4 @@ public class Arquivo implements Serializable {
     public String toString(){
         return "Arquivo: " + nome + " (conteudo: '" + conteudo + "'";
     }
-
-    
 }
